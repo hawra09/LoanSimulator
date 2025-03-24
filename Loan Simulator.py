@@ -1,8 +1,10 @@
 import math
-
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+import pandas as pd
 
 def amortized_loan(loan_amount, interest_rate, loan_term_year, loan_term_month, compounding_frequency, payback_frequency):
-
     global payments_per_year, m
 
     interest_rate =interest_rate/100
@@ -49,20 +51,53 @@ def amortized_loan(loan_amount, interest_rate, loan_term_year, loan_term_month, 
         numerator = loan_amount * period_rate * math.exp(number_payments * math.log1p(period_rate))
         denominator = math.exp(number_payments * math.log1p(period_rate)) - 1
         payment = numerator / denominator
-    print(f"Your payment per period ({payback_frequency}) is: ${payment:.2f}")
+    print(f"Your payment per period ({payback_frequency}) is: ${payment:.2f}.")
 
     remaining_balance = loan_amount
     interest_paid = 0
     principal_paid = 0
-    print(f"   Payment | Beginning Balance |      Interest    |     Principal     | Ending Balance")
+    amortization_data = []
+
     for i in range(1, int(number_payments) + 1):
         beginning_balance = remaining_balance  # Beginning balance is the remaining balance from the previous period
         interest_paid = beginning_balance * period_rate
         principal_paid = payment - interest_paid
         remaining_balance -= principal_paid
-        print(f"{i:>10} | ${beginning_balance:^16.2f} | ${interest_paid:^15.2f} | ${principal_paid:^16.2f} | ${remaining_balance:^16.2f}")
+        amortization_data.append({'Payment Number': i, 'Beginning Balance': beginning_balance,
+                                  'Interest': interest_paid, 'Principal': principal_paid,
+                                  'Ending Balance': remaining_balance})
+    amortization_data = pd.DataFrame(amortization_data)
+    return amortization_data
 
-amortized_loan(
+def amortization_plot(amortization_data):
+    fig, axes = plt.subplots(2,2, figsize=(8,8))
+    fig.suptitle('Visualization: Amortization Analysis', fontsize=16, fontweight='bold')
+    #first plot
+    sns.lineplot(data=amortization_data, x='Payment Number', y='Ending Balance', ax=axes[0,0])
+    axes[0,0].set_title('End Balance Over Time')
+
+    #second plot
+    total_interest = amortization_data['Interest'].sum()
+    total_principal = amortization_data['Principal'].sum()
+    axes[0,1].pie([total_interest, total_principal], labels=['Total Interest Paid', 'Total Principal Paid'])
+    axes[0,1].set_title('Total Interest and Principal Paid')
+
+    #third plot
+    amortization_data.plot.bar(x='Payment Number', y=['Interest', 'Principal'], stacked=True, ax=axes[1,0])
+    x_ticks = (range(0, amortization_data['Payment Number'].iloc[-1]+1, 10))
+    axes[1,0].set_xticks(x_ticks)
+    axes[1,0].set_xticklabels([str(i) for i in x_ticks])
+    axes[1,0].legend(loc='upper right', bbox_to_anchor=(1.2,1))
+    axes[1,0].set_title('Total Interest and Principal Paid Over Time')
+
+    #fourth plot
+    axes[1,1].axis('off')
+    plt.tight_layout()
+    plt.show()
+
+
+    #fourth plot
+amortized_data = amortized_loan(
     loan_amount=100000,
     loan_term_year=10,
     loan_term_month=0,
@@ -70,3 +105,5 @@ amortized_loan(
     compounding_frequency = 'Biweekly',
     payback_frequency= 'Every Half Month'
 )
+
+amortization_plot(amortized_data)
