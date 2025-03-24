@@ -41,20 +41,26 @@ def amortized_loan(loan_amount, interest_rate, loan_term_year, loan_term_month, 
     number_payments = (loan_months/12) * payments_per_year
     period_rate = (1 + interest_rate / m) ** (m / payments_per_year) - 1
 
-    # Calculate periodic interest rate
-    if period_rate == 0:
-        period_rate = 0
-    else:
-        period_rate = (1+interest_rate/m) ** (m/payments_per_year) -1
 
     if period_rate == 0:
+        period_rate = 0
         payment = loan_amount / number_payments
     else:
         numerator = loan_amount * period_rate * math.exp(number_payments * math.log1p(period_rate))
         denominator = math.exp(number_payments * math.log1p(period_rate)) - 1
         payment = numerator / denominator
-
     print(f"Your payment per period ({payback_frequency}) is: ${payment:.2f}")
+
+    remaining_balance = loan_amount
+    interest_paid = 0
+    principal_paid = 0
+    print(f"   Payment | Beginning Balance |      Interest    |     Principal     | Ending Balance")
+    for i in range(1, int(number_payments) + 1):
+        beginning_balance = remaining_balance  # Beginning balance is the remaining balance from the previous period
+        interest_paid = beginning_balance * period_rate
+        principal_paid = payment - interest_paid
+        remaining_balance -= principal_paid
+        print(f"{i:>10} | ${beginning_balance:^16.2f} | ${interest_paid:^15.2f} | ${principal_paid:^16.2f} | ${remaining_balance:^16.2f}")
 
 amortized_loan(
     loan_amount=100000,
