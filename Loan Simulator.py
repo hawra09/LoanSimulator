@@ -145,6 +145,9 @@ def amortization_plot(amortization_data):
     plt.tight_layout()
     plt.show()
 
+def export_amortization_data(amortization_data, filename='amortization.csv'):
+    amortization_data.to_csv(filename, index='False')
+    print(f'Data has been exported to {filename}')
 
 amortized_data = amortized_loan(
     loan_amount=100000,
@@ -155,5 +158,5 @@ amortized_data = amortized_loan(
     payback_frequency= 'Every Half Month',
     extra_payment=500
 )
-
+export_amortization_data(amortized_data)
 amortization_plot(amortized_data)
